@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">calander test</string>
+    <string name="back_button">back button</string>
+    <string name="currentdate">CurrentDate</string>
+    <string name="forward_button">forward button</string>
+    <string name="sun">SUN</string>
+    <string name="mon">MON</string>
+    <string name="tue">TUE</string>
+    <string name="wed">WED</string>
+    <string name="thu">THU</string>
+    <string name="fri">FRI</string>
+    <string name="sat">SAT</string>
+    <string name="type_event">Type Event</string>
+    <string name="type_desc">Type Desc</string>
+    <string name="time_button">Time button</string>
+    <string name="add_event">Add Event</string>
+</resources>
