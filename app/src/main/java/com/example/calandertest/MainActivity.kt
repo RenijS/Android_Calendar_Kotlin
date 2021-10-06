@@ -1,12 +1,17 @@
 package com.example.calandertest
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.time.LocalDate
@@ -14,6 +19,9 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
+
+    val READ_CALENDAR_RQ = 101
+    val WRITE_CALENDAR_RQ = 102
 
     private lateinit var monthYearText: TextView
     private lateinit var calendarRecyclerView: RecyclerView
@@ -24,6 +32,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        checkForPermission(android.Manifest.permission.READ_CALENDAR, "read calendar", READ_CALENDAR_RQ)
+        checkForPermission(android.Manifest.permission.WRITE_CALENDAR, "write calendar", WRITE_CALENDAR_RQ)
         initWidgets()
         selectedDate = LocalDate.now()
         setMonthView()
@@ -81,4 +91,50 @@ class MainActivity : AppCompatActivity() {
     public fun getMonthYear() : String{
         return monthYearText.text.toString()
     }
+
+
+    private fun checkForPermission(permission: String, name: String, requestCode: Int){
+        when{
+            ContextCompat.checkSelfPermission(this,permission) == PackageManager.PERMISSION_GRANTED ->{
+                Toast.makeText(this, "$name permission granted", Toast.LENGTH_SHORT).show()
+            }
+            ActivityCompat.shouldShowRequestPermissionRationale(this, permission) -> showDialog(permission, name, requestCode)
+
+            else -> ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        fun innerCheck(name: String){
+            if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED){
+                Toast.makeText(applicationContext, "$name permission refused", Toast.LENGTH_SHORT).show()
+            } else{
+                Toast.makeText(applicationContext, "$name permission granted", Toast.LENGTH_SHORT).show()
+            }
+        }
+        when(requestCode){
+            READ_CALENDAR_RQ -> innerCheck("read calendar")
+            WRITE_CALENDAR_RQ -> innerCheck("write calendar")
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+    private fun showDialog(permission: String, name: String, requestCode: Int){
+        val builder = AlertDialog.Builder(this)
+
+        builder.apply {
+            setMessage("Permission to access $name is required")
+            setTitle("Permission Required")
+            setPositiveButton("OK"){dialog, which ->
+                ActivityCompat.requestPermissions(this@MainActivity, arrayOf(permission), requestCode)
+            }
+        }
+        val dialog = builder.show()
+        dialog.show()
+    }
+
 }
