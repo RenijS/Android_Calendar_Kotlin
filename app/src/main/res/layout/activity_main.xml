@@ -30,6 +30,12 @@
             android:textStyle="bold"
             android:layout_weight="1"/>
 
+        <Button
+            android:id="@+id/toLocalBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Local Cal"/>
+
         <ImageButton
             android:layout_width="40dp"
             android:layout_height="40dp"

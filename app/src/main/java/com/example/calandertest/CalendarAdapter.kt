@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class CalendarAdapter(private val context: Context, arr : ArrayList<String>): RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
+class CalendarAdapter(private val context: Context, arr : ArrayList<String>, private val onItemClick: onItemClick): RecyclerView.Adapter<CalendarAdapter.ViewHolder>() {
 
     private val daysOfMonths = arr
 
@@ -50,6 +50,7 @@ class CalendarAdapter(private val context: Context, arr : ArrayList<String>): Re
         dialogBuilder.window!!.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT)
         val eventName = dialogBuilder.findViewById<EditText>(R.id.events_id)
         val eventTime = dialogBuilder.findViewById<TextView>(R.id.eventTime)
+        val eventDesc =dialogBuilder.findViewById<TextView>(R.id.events_desc)
         val setTime = dialogBuilder.findViewById<ImageButton>(R.id.setEventTime)
         val addEvent = dialogBuilder.findViewById<Button>(R.id.addEvent)
         setTime.setOnClickListener {
@@ -69,32 +70,9 @@ class CalendarAdapter(private val context: Context, arr : ArrayList<String>): Re
             tpD.show()
         }
         addEvent.setOnClickListener {
-
-            val startMillis: Long = Calendar.getInstance().run {
-                set(2021, 9, 14, 7, 30)
-                timeInMillis
-            }
-            val endMillis: Long = Calendar.getInstance().run {
-                set(2021, 9, 14, 8, 45)
-                timeInMillis
-            }
-            val values = ContentValues().apply {
-                put(CalendarContract.Events.DTSTART, startMillis)
-                put(CalendarContract.Events.DTEND, endMillis)
-                put(CalendarContract.Events.TITLE, eventName.text.toString())
-                put(CalendarContract.Events.DESCRIPTION, "Group workout")
-                put(CalendarContract.Events.CALENDAR_ID, 1)
-                put(CalendarContract.Events.EVENT_TIMEZONE, "Asia/Tokyo")
-            }
-            val cr: ContentResolver = context.applicationContext.contentResolver
-            val uri: Uri = cr.insert(CalendarContract.Events.CONTENT_URI, values)!!
-            val eventID: Long = uri.lastPathSegment!!.toLong()
-            println(uri)
+            onItemClick.onClick(calEvent(eventName.text.toString(), eventTime.text.toString(), eventDesc.text.toString()))
+            dialogBuilder.dismiss()
         }
         dialogBuilder.show()
-    }
-
-    private fun saveEvent(event: String, date: String, month:String, year: String){
-
     }
 }

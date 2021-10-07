@@ -2,11 +2,16 @@ package com.example.calandertest
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.CalendarContract
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -17,8 +22,10 @@ import androidx.recyclerview.widget.RecyclerView
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.collections.ArrayList
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), onItemClick {
 
     val READ_CALENDAR_RQ = 101
     val WRITE_CALENDAR_RQ = 102
@@ -26,6 +33,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var monthYearText: TextView
     private lateinit var calendarRecyclerView: RecyclerView
     private lateinit var selectedDate: LocalDate
+    private lateinit var toLocalBtn: Button
+
+    private val eventsList = ArrayList<calEvent>()
 
     @SuppressLint("NewApi")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,13 +52,18 @@ class MainActivity : AppCompatActivity() {
     private fun initWidgets() {
         calendarRecyclerView = findViewById(R.id.calRV)
         monthYearText = findViewById(R.id.monthYearTV)
+        toLocalBtn = findViewById(R.id.toLocalBtn)
+
+        toLocalBtn.setOnClickListener {
+            insertEventsToLocal(eventsList)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setMonthView() {
         monthYearText.text = monthYearFromDate(selectedDate)
         var daysInMonth : ArrayList<String> = daysInMonthArray(selectedDate)
-        calendarRecyclerView.adapter = CalendarAdapter(this,daysInMonth)
+        calendarRecyclerView.adapter = CalendarAdapter(this,daysInMonth, this)
         calendarRecyclerView.layoutManager = GridLayoutManager(this, 7)
     }
 
@@ -137,4 +152,38 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
+    override fun onClick(events: calEvent) {
+        eventsList.add(events)
+    }
+
+    private fun insertEventsToLocal(eventsList: List<calEvent>){
+        eventsList.forEach { event ->
+            if (event.eventTime.isNotEmpty()) {
+                var hour = Integer.parseInt(event.eventTime.substring(0, event.eventTime.indexOf(":")))
+                if (event.eventTime.contains("PM")){
+                    hour += 12
+                }
+                val min = Integer.parseInt(event.eventTime.substring(event.eventTime.indexOf(":")+1, event.eventTime.indexOf(" ")))
+                val startMillis: Long = Calendar.getInstance().run {
+                    set(2021, 9, 14, hour, min)
+                    timeInMillis
+                }
+                val endMillis: Long = Calendar.getInstance().run {
+                    set(2021, 9, 14, hour+1, min+1)
+                    timeInMillis
+                }
+                val values = ContentValues().apply {
+                    put(CalendarContract.Events.DTSTART, startMillis)
+                    put(CalendarContract.Events.DTEND, endMillis)
+                    put(CalendarContract.Events.TITLE, event.eventName)
+                    put(CalendarContract.Events.DESCRIPTION, event.eventDesc)
+                    put(CalendarContract.Events.CALENDAR_ID, 1)
+                    put(CalendarContract.Events.EVENT_TIMEZONE, "Asia/Tokyo")
+                }
+                val cr: ContentResolver = application.contentResolver
+                val uri: Uri = cr.insert(CalendarContract.Events.CONTENT_URI, values)!!
+                val eventID: Long = uri.lastPathSegment!!.toLong()
+            }
+        }
+    }
 }
