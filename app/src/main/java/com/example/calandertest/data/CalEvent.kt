@@ -1,4 +1,4 @@
-package com.example.calandertest
+package com.example.calandertest.data
 
 data class calEvent(
     val eventName: String,

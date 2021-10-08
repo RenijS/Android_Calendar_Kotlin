@@ -2,17 +2,14 @@ package com.example.calandertest
 
 import android.app.Dialog
 import android.app.TimePickerDialog
-import android.content.ContentResolver
-import android.content.ContentValues
 import android.content.Context
-import android.net.Uri
-import android.provider.CalendarContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.*
 import androidx.recyclerview.widget.RecyclerView
+import com.example.calandertest.data.calEvent
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList

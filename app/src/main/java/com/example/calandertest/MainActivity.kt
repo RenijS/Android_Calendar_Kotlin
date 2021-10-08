@@ -19,6 +19,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.calandertest.data.calEvent
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -157,33 +158,47 @@ class MainActivity : AppCompatActivity(), onItemClick {
     }
 
     private fun insertEventsToLocal(eventsList: List<calEvent>){
-        eventsList.forEach { event ->
-            if (event.eventTime.isNotEmpty()) {
-                var hour = Integer.parseInt(event.eventTime.substring(0, event.eventTime.indexOf(":")))
-                if (event.eventTime.contains("PM")){
-                    hour += 12
+        if (eventsList.isEmpty()){
+            Toast.makeText(this, "List is empty", Toast.LENGTH_SHORT).show()
+        } else {
+            eventsList.forEach { event ->
+                if (event.eventTime.isNotEmpty()) {
+                    var hour =
+                        Integer.parseInt(event.eventTime.substring(0, event.eventTime.indexOf(":")))
+                    if (event.eventTime.contains("PM")) {
+                        hour += 12
+                    }
+                    val min = Integer.parseInt(
+                        event.eventTime.substring(event.eventTime.indexOf(":") + 1, event.eventTime.indexOf(" "))
+                    )
+                    val startMillis: Long = Calendar.getInstance().run {
+                        set(2021, 9, 14, hour, min)
+                        timeInMillis
+                    }
+                    val endMillis: Long = Calendar.getInstance().run {
+                        set(2021, 9, 14, hour + 1, min + 1)
+                        timeInMillis
+                    }
+                    val values = ContentValues().apply {
+                        put(CalendarContract.Events.DTSTART, startMillis)
+                        put(CalendarContract.Events.DTEND, endMillis)
+                        put(CalendarContract.Events.TITLE, event.eventName)
+                        put(CalendarContract.Events.DESCRIPTION, event.eventDesc)
+                        put(CalendarContract.Events.CALENDAR_ID, 1)
+                        put(CalendarContract.Events.EVENT_TIMEZONE, "Asia/Tokyo")
+                    }
+                    val cr: ContentResolver = application.contentResolver
+                    val uri: Uri = cr.insert(CalendarContract.Events.CONTENT_URI, values)!!
+                    val eventID: Long = uri.lastPathSegment!!.toLong()
+                } else {
+                    Toast.makeText(this, "Event time length : ${event.eventTime.length}", Toast.LENGTH_SHORT).show()
                 }
-                val min = Integer.parseInt(event.eventTime.substring(event.eventTime.indexOf(":")+1, event.eventTime.indexOf(" ")))
-                val startMillis: Long = Calendar.getInstance().run {
-                    set(2021, 9, 14, hour, min)
-                    timeInMillis
-                }
-                val endMillis: Long = Calendar.getInstance().run {
-                    set(2021, 9, 14, hour+1, min+1)
-                    timeInMillis
-                }
-                val values = ContentValues().apply {
-                    put(CalendarContract.Events.DTSTART, startMillis)
-                    put(CalendarContract.Events.DTEND, endMillis)
-                    put(CalendarContract.Events.TITLE, event.eventName)
-                    put(CalendarContract.Events.DESCRIPTION, event.eventDesc)
-                    put(CalendarContract.Events.CALENDAR_ID, 1)
-                    put(CalendarContract.Events.EVENT_TIMEZONE, "Asia/Tokyo")
-                }
-                val cr: ContentResolver = application.contentResolver
-                val uri: Uri = cr.insert(CalendarContract.Events.CONTENT_URI, values)!!
-                val eventID: Long = uri.lastPathSegment!!.toLong()
             }
         }
+    }
+
+
+    private fun saveEvents(event : String, time: String, date: String, month: String, year: String){
+
     }
 }
